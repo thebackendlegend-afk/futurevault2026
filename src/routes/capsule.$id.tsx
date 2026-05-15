@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Unlock, ArrowLeft, Share2, MessageSquare } from "lucide-react";
+import { Lock, Unlock, ArrowLeft, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
+import { LikeButton, ShareButton, FollowButton, Comments } from "@/components/CapsuleSocial";
 
 export const Route = createFileRoute("/capsule/$id")({ component: CapsulePage });
 
