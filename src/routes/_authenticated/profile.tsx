@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { LogOut, Mail, User as UserIcon, Lock, Package } from "lucide-react";
+import { LogOut, Mail, User as UserIcon, Lock, Package, Camera, Loader2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -18,22 +18,26 @@ function Profile() {
   const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
   const [initial, setInitial] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [stats, setStats] = useState<Stats>({ total: 0, locked: 0, unlocked: 0 });
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
     let active = true;
     (async () => {
       const [{ data: profile }, { data: capsules }] = await Promise.all([
-        supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("capsules").select("unlock_time").eq("user_id", user.id),
       ]);
       if (!active) return;
       const name = profile?.full_name ?? "";
       setFullName(name);
       setInitial(name);
+      setAvatarUrl(profile?.avatar_url ?? null);
       const now = Date.now();
       const list = capsules ?? [];
       setStats({
@@ -45,6 +49,42 @@ function Profile() {
     })();
     return () => { active = false; };
   }, [user]);
+
+  const onPickAvatar = () => fileInput.current?.click();
+
+  const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f || !user) return;
+    if (!f.type.startsWith("image/")) return toast.error("Please choose an image");
+    if (f.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    setUploading(true);
+    try {
+      const ext = f.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, f, { upsert: true, contentType: f.type });
+      if (upErr) throw upErr;
+      const url = `${supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+      const { error: dbErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+      if (dbErr) throw dbErr;
+      setAvatarUrl(url);
+      toast.success("Photo updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    if (!user || !avatarUrl) return;
+    setUploading(true);
+    const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+    setUploading(false);
+    if (error) return toast.error(error.message);
+    setAvatarUrl(null);
+    toast.success("Photo removed");
+  };
 
   const dirty = fullName.trim() !== initial.trim();
 
