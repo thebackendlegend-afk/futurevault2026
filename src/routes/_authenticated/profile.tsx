@@ -122,16 +122,47 @@ function Profile() {
     <div className="container mx-auto px-4 py-12 max-w-3xl">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-4 mb-8">
-          <div className="size-16 rounded-2xl bg-gradient-primary grid place-items-center text-2xl font-display font-bold text-primary-foreground glow">
-            {initials}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={onPickAvatar}
+              className="size-20 rounded-2xl overflow-hidden bg-gradient-primary grid place-items-center text-2xl font-display font-bold text-primary-foreground glow relative"
+              aria-label="Change profile photo"
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <span>{initials}</span>
+              )}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition grid place-items-center">
+                {uploading ? <Loader2 className="size-6 animate-spin" /> : <Camera className="size-6" />}
+              </div>
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onAvatarChange}
+            />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl sm:text-4xl font-display font-bold truncate">
               {fullName || "Welcome"}
             </h1>
             <p className="text-muted-foreground text-sm flex items-center gap-1.5">
               <Mail className="size-3.5" /> {user?.email}
             </p>
+            <div className="flex gap-2 mt-2">
+              <Button size="sm" variant="outline" className="glass" onClick={onPickAvatar} disabled={uploading}>
+                <Camera className="size-3.5 mr-1.5" /> {avatarUrl ? "Change photo" : "Upload photo"}
+              </Button>
+              {avatarUrl && (
+                <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={removeAvatar} disabled={uploading}>
+                  <Trash2 className="size-3.5 mr-1.5" /> Remove
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
