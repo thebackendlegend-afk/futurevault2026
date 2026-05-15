@@ -157,6 +157,10 @@ function CapsulePage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {capsule.is_public && unlocked && (
+            <Comments capsuleId={capsule.id} ownerId={capsule.user_id} />
+          )}
         </div>
       </motion.div>
     </div>
