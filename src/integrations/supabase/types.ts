@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      capsule_comments: {
+        Row: {
+          capsule_id: string
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capsule_id: string
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capsule_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capsule_comments_capsule_id_fkey"
+            columns: ["capsule_id"]
+            isOneToOne: false
+            referencedRelation: "capsules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       capsule_files: {
         Row: {
           capsule_id: string
@@ -45,6 +80,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "capsule_files_capsule_id_fkey"
+            columns: ["capsule_id"]
+            isOneToOne: false
+            referencedRelation: "capsules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      capsule_likes: {
+        Row: {
+          capsule_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          capsule_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          capsule_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capsule_likes_capsule_id_fkey"
             columns: ["capsule_id"]
             isOneToOne: false
             referencedRelation: "capsules"
@@ -109,6 +173,24 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
         }
         Relationships: []
       }

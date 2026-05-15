@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Unlock, ArrowLeft, Share2, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
+import { Lock, Unlock, ArrowLeft, MessageSquare } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
+import { LikeButton, ShareButton, FollowButton, Comments } from "@/components/CapsuleSocial";
 
 export const Route = createFileRoute("/capsule/$id")({ component: CapsulePage });
 
@@ -62,11 +63,6 @@ function CapsulePage() {
   const unlocked = new Date(capsule.unlock_time).getTime() <= now;
   const isOwner = user?.id === capsule.user_id;
 
-  const share = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copied");
-  };
-
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       <Link to={isOwner ? "/dashboard" : "/explore"} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
@@ -85,14 +81,19 @@ function CapsulePage() {
         )}
         <div className="p-6 sm:p-10">
           <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
+            <div className="min-w-0">
               <h1 className="text-4xl sm:text-5xl font-display font-bold">{capsule.title}</h1>
               {capsule.description && <p className="text-muted-foreground mt-3 max-w-2xl">{capsule.description}</p>}
             </div>
-            <Button variant="outline" size="sm" className="glass" onClick={share}>
-              <Share2 className="size-4 mr-2" /> Share
-            </Button>
+            {capsule.is_public && !isOwner && <FollowButton targetUserId={capsule.user_id} />}
           </div>
+
+          {capsule.is_public && (
+            <div className="flex items-center gap-5 mt-5 pb-5 border-b border-border/40">
+              <LikeButton capsuleId={capsule.id} />
+              <ShareButton capsuleId={capsule.id} />
+            </div>
+          )}
 
           <AnimatePresence mode="wait">
             {!unlocked ? (
@@ -156,6 +157,10 @@ function CapsulePage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {capsule.is_public && unlocked && (
+            <Comments capsuleId={capsule.id} ownerId={capsule.user_id} />
+          )}
         </div>
       </motion.div>
     </div>
