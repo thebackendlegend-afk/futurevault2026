@@ -27,6 +27,7 @@ function Create() {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [message, setMessage] = useState("");
   const [unlockAt, setUnlockAt] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -76,6 +77,7 @@ function Create() {
           user_id: user.id,
           title: title.trim(),
           description: description.trim() || null,
+          message: message.trim() || null,
           unlock_time: unlockTime.toISOString(),
           is_public: isPublic,
           thumbnail_url,
@@ -129,7 +131,14 @@ function Create() {
           </div>
           <div>
             <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's inside this capsule…" className="mt-1.5" rows={3} />
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's inside this capsule…" className="mt-1.5" rows={2} />
+            <p className="text-xs text-muted-foreground mt-1">Visible before unlock as a teaser.</p>
+          </div>
+
+          <div>
+            <Label>Message to the future</Label>
+            <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Dear future me…" className="mt-1.5" rows={5} maxLength={5000} />
+            <p className="text-xs text-muted-foreground mt-1">Sealed inside — only revealed when the capsule unlocks.</p>
           </div>
 
           <div>
