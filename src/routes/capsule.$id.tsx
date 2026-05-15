@@ -1,32 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Unlock, Download, ArrowLeft, Share2, FileText, Image as ImageIcon, Music, Video } from "lucide-react";
+import { Lock, Unlock, ArrowLeft, Share2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
-import { formatBytes } from "@/lib/countdown";
+import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 
 export const Route = createFileRoute("/capsule/$id")({ component: CapsulePage });
 
 type Capsule = {
   id: string; user_id: string; title: string; description: string | null;
+  message: string | null;
   unlock_time: string; is_public: boolean; thumbnail_url: string | null; created_at: string;
 };
-type CapsuleFile = {
-  id: string; capsule_id: string; file_name: string; file_type: string | null;
-  file_size: number | null; storage_path: string;
-};
 
-function iconFor(type: string | null) {
-  if (!type) return FileText;
-  if (type.startsWith("image/")) return ImageIcon;
-  if (type.startsWith("video/")) return Video;
-  if (type.startsWith("audio/")) return Music;
-  return FileText;
-}
 
 function CapsulePage() {
   const { id } = Route.useParams();
