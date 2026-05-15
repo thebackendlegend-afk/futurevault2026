@@ -58,6 +58,7 @@ export type Database = {
           description: string | null
           id: string
           is_public: boolean
+          message: string | null
           thumbnail_url: string | null
           title: string
           unlock_time: string
@@ -68,6 +69,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          message?: string | null
           thumbnail_url?: string | null
           title: string
           unlock_time: string
@@ -78,6 +80,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          message?: string | null
           thumbnail_url?: string | null
           title?: string
           unlock_time?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.capsules ADD COLUMN message text;

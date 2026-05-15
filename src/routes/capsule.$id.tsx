@@ -1,32 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Unlock, Download, ArrowLeft, Share2, FileText, Image as ImageIcon, Music, Video } from "lucide-react";
+import { Lock, Unlock, ArrowLeft, Share2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
-import { formatBytes } from "@/lib/countdown";
+import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 
 export const Route = createFileRoute("/capsule/$id")({ component: CapsulePage });
 
 type Capsule = {
   id: string; user_id: string; title: string; description: string | null;
+  message: string | null;
   unlock_time: string; is_public: boolean; thumbnail_url: string | null; created_at: string;
 };
-type CapsuleFile = {
-  id: string; capsule_id: string; file_name: string; file_type: string | null;
-  file_size: number | null; storage_path: string;
-};
 
-function iconFor(type: string | null) {
-  if (!type) return FileText;
-  if (type.startsWith("image/")) return ImageIcon;
-  if (type.startsWith("video/")) return Video;
-  if (type.startsWith("audio/")) return Music;
-  return FileText;
-}
 
 function CapsulePage() {
   const { id } = Route.useParams();
@@ -71,12 +61,6 @@ function CapsulePage() {
 
   const unlocked = new Date(capsule.unlock_time).getTime() <= now;
   const isOwner = user?.id === capsule.user_id;
-
-  const downloadFile = async (f: CapsuleFile) => {
-    const { data, error } = await supabase.storage.from("capsule-files").createSignedUrl(f.storage_path, 60);
-    if (error) return toast.error(error.message);
-    window.open(data.signedUrl, "_blank");
-  };
 
   const share = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -148,31 +132,25 @@ function CapsulePage() {
                   </div>
                 </div>
 
+                {capsule.message && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="glass rounded-2xl p-5 sm:p-6 mb-6 border-l-4 border-primary"
+                  >
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-3">
+                      <MessageSquare className="size-3.5" /> Message from the past
+                    </div>
+                    <p className="whitespace-pre-wrap font-display text-lg leading-relaxed">{capsule.message}</p>
+                  </motion.div>
+                )}
+
                 {files.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">No files in this capsule.</p>
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {files.map((f) => {
-                      const Icon = iconFor(f.file_type);
-                      return (
-                        <motion.div
-                          key={f.id}
-                          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                          className="glass rounded-xl p-4 flex items-center gap-3"
-                        >
-                          <div className="size-10 rounded-lg bg-primary/20 grid place-items-center shrink-0">
-                            <Icon className="size-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium truncate">{f.file_name}</div>
-                            <div className="text-xs text-muted-foreground">{formatBytes(f.file_size ?? 0)}</div>
-                          </div>
-                          <Button size="sm" variant="ghost" onClick={() => downloadFile(f)}>
-                            <Download className="size-4" />
-                          </Button>
-                        </motion.div>
-                      );
-                    })}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {files.map((f) => (
+                      <FilePreview key={f.id} file={f} />
+                    ))}
                   </div>
                 )}
               </motion.div>
