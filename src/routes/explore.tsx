@@ -8,7 +8,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton } from "@/components/CapsuleSocial";
-import { formatRemaining } from "@/lib/countdown";
+import { getCountdown } from "@/lib/countdown";
+
+function shortRemaining(target: string) {
+  const c = getCountdown(target);
+  if (c.done) return "unlocked";
+  if (c.years) return `${c.years}y ${c.months}mo`;
+  if (c.months) return `${c.months}mo ${c.days}d`;
+  if (c.days) return `${c.days}d ${c.hours}h`;
+  if (c.hours) return `${c.hours}h ${c.minutes}m`;
+  return `${c.minutes}m ${c.seconds}s`;
+}
 
 export const Route = createFileRoute("/explore")({
   component: Explore,
