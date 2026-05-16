@@ -110,6 +110,7 @@ function Explore() {
 
 function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files: CapsuleFile[]; owner?: Owner; index: number }) {
   const initial = (owner?.full_name ?? "?")[0]?.toUpperCase() ?? "?";
+  const unlocked = new Date(capsule.unlock_time).getTime() <= Date.now();
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
