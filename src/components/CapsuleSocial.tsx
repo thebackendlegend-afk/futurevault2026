@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, MessageCircle, Share2, UserPlus, UserCheck, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, UserPlus, UserCheck, Send, Trash2, Pencil, X, Check } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -216,34 +216,99 @@ export function Comments({ capsuleId, ownerId }: { capsuleId: string; ownerId: s
       ) : (
         <ul className="space-y-3">
           <AnimatePresence initial={false}>
-            {items.map((c) => {
-              const canDelete = user && (user.id === c.user_id || user.id === ownerId);
-              return (
-                <motion.li
-                  key={c.id}
-                  layout
-                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
-                  className="glass rounded-xl p-4 flex gap-3"
-                >
-                  <Avatar profile={c.profile} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-medium text-sm truncate">{c.profile?.full_name || "Anonymous"}</span>
-                      <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-sm mt-1 whitespace-pre-wrap break-words">{c.content}</p>
-                  </div>
-                  {canDelete && (
-                    <button onClick={() => remove(c.id)} className="text-muted-foreground hover:text-destructive shrink-0">
-                      <Trash2 className="size-4" />
-                    </button>
-                  )}
-                </motion.li>
-              );
-            })}
+            {items.map((c) => (
+              <CommentItem
+                key={c.id}
+                comment={c}
+                currentUserId={user?.id}
+                ownerId={ownerId}
+                onDelete={() => remove(c.id)}
+                onUpdate={(content) => setItems((arr) => arr.map((x) => x.id === c.id ? { ...x, content } : x))}
+              />
+            ))}
           </AnimatePresence>
         </ul>
       )}
     </div>
+  );
+}
+
+function CommentItem({
+  comment, currentUserId, ownerId, onDelete, onUpdate,
+}: {
+  comment: Comment;
+  currentUserId?: string;
+  ownerId: string;
+  onDelete: () => void;
+  onUpdate: (content: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.content);
+  const [saving, setSaving] = useState(false);
+  const canEdit = currentUserId === comment.user_id;
+  const canDelete = currentUserId && (currentUserId === comment.user_id || currentUserId === ownerId);
+
+  const save = async () => {
+    const trimmed = draft.trim();
+    if (!trimmed) return toast.error("Comment can't be empty");
+    if (trimmed.length > 2000) return toast.error("Comment too long");
+    if (trimmed === comment.content) { setEditing(false); return; }
+    setSaving(true);
+    const { error } = await supabase.from("capsule_comments").update({ content: trimmed }).eq("id", comment.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    onUpdate(trimmed);
+    setEditing(false);
+    toast.success("Comment updated");
+  };
+
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
+      className="glass rounded-xl p-4 flex gap-3"
+    >
+      <Avatar profile={comment.profile} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span className="font-medium text-sm truncate">{comment.profile?.full_name || "Anonymous"}</span>
+          <span className="text-xs text-muted-foreground">{new Date(comment.created_at).toLocaleDateString()}</span>
+        </div>
+        {editing ? (
+          <div className="mt-2">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={2} maxLength={2000}
+              className="resize-none text-sm"
+            />
+            <div className="flex gap-2 mt-2">
+              <Button size="sm" onClick={save} disabled={saving} className="bg-gradient-primary glow h-7">
+                <Check className="size-3.5 mr-1" /> Save
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7" onClick={() => { setDraft(comment.content); setEditing(false); }}>
+                <X className="size-3.5 mr-1" /> Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm mt-1 whitespace-pre-wrap break-words">{comment.content}</p>
+        )}
+      </div>
+      {!editing && (
+        <div className="flex flex-col gap-1.5 shrink-0">
+          {canEdit && (
+            <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground" aria-label="Edit comment">
+              <Pencil className="size-4" />
+            </button>
+          )}
+          {canDelete && (
+            <button onClick={onDelete} className="text-muted-foreground hover:text-destructive" aria-label="Delete comment">
+              <Trash2 className="size-4" />
+            </button>
+          )}
+        </div>
+      )}
+    </motion.li>
   );
 }
