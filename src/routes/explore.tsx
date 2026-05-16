@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, Globe, Unlock } from "lucide-react";
+import { Search, Globe, Unlock, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton } from "@/components/CapsuleSocial";
+import { formatRemaining } from "@/lib/countdown";
 
 export const Route = createFileRoute("/explore")({
   component: Explore,
