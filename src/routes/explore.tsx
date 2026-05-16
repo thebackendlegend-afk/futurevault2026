@@ -86,13 +86,13 @@ function Explore() {
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search capsules…" className="pl-9 glass h-11" />
       </div>
       {loading ? (
-        <div className="grid md:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-96 rounded-2xl" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-56 rounded-xl" />)}
         </div>
       ) : filtered.length === 0 ? (
         <p className="text-center text-muted-foreground py-16">No public capsules yet. Be the first to seal one!</p>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {filtered.map((c, i) => (
             <ExploreCard
               key={c.id}
@@ -115,62 +115,56 @@ function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      className="glass-strong rounded-2xl overflow-hidden flex flex-col"
+      transition={{ delay: index * 0.03 }}
+      className="glass-strong rounded-xl overflow-hidden flex flex-col text-xs"
     >
       {capsule.thumbnail_url && (
-        <Link to="/capsule/$id" params={{ id: capsule.id }} className="block aspect-[2/1] overflow-hidden">
+        <Link to="/capsule/$id" params={{ id: capsule.id }} className="block aspect-[4/3] overflow-hidden">
           <img src={capsule.thumbnail_url} alt={capsule.title} className="w-full h-full object-cover hover:scale-105 transition duration-500" />
         </Link>
       )}
-      <div className="p-5 flex-1 flex flex-col">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="p-3 flex-1 flex flex-col">
+        <div className="flex items-center gap-1.5 mb-2">
           {owner?.avatar_url ? (
-            <img src={owner.avatar_url} alt="" className="size-8 rounded-full object-cover" />
+            <img src={owner.avatar_url} alt="" className="size-5 rounded-full object-cover" />
           ) : (
-            <div className="size-8 rounded-full bg-gradient-primary grid place-items-center text-xs font-semibold text-primary-foreground">{initial}</div>
+            <div className="size-5 rounded-full bg-gradient-primary grid place-items-center text-[10px] font-semibold text-primary-foreground">{initial}</div>
           )}
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">{owner?.full_name || "Anonymous"}</div>
-            <div className="text-xs text-muted-foreground">
-              {unlocked ? `Unlocked ${new Date(capsule.unlock_time).toLocaleDateString()}` : `Unlocks in ${shortRemaining(capsule.unlock_time)}`}
-            </div>
-          </div>
-          <Badge variant="secondary" className="glass">
-            {unlocked ? <><Unlock className="size-3 mr-1" /> Open</> : <><Lock className="size-3 mr-1" /> Sealed</>}
+          <div className="text-[11px] text-muted-foreground truncate flex-1">{owner?.full_name || "Anonymous"}</div>
+          <Badge variant="secondary" className="glass text-[10px] px-1.5 py-0 h-4">
+            {unlocked ? <Unlock className="size-2.5" /> : <Lock className="size-2.5" />}
           </Badge>
         </div>
 
         <Link to="/capsule/$id" params={{ id: capsule.id }} className="hover:text-primary transition">
-          <h2 className="font-display font-bold text-2xl leading-tight">{capsule.title}</h2>
+          <h2 className="font-display font-bold text-sm leading-tight line-clamp-2">{capsule.title}</h2>
         </Link>
-        {capsule.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{capsule.description}</p>}
+        <div className="text-[10px] text-muted-foreground mt-0.5">
+          {unlocked ? `Unlocked ${new Date(capsule.unlock_time).toLocaleDateString()}` : `Unlocks in ${shortRemaining(capsule.unlock_time)}`}
+        </div>
 
         {unlocked ? (
-          <>
-            {files.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {files.slice(0, 4).map((f) => <FilePreview key={f.id} file={f} />)}
-              </div>
-            )}
-            {files.length > 4 && (
-              <Link to="/capsule/$id" params={{ id: capsule.id }} className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">
-                <Globe className="size-3" /> +{files.length - 4} more file{files.length - 4 !== 1 ? "s" : ""}
-              </Link>
-            )}
-          </>
+          files.length > 0 && (
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
+              {files.slice(0, 2).map((f) => <FilePreview key={f.id} file={f} />)}
+            </div>
+          )
         ) : (
-          <div className="mt-4 glass rounded-xl py-8 grid place-items-center text-center">
-            <Lock className="size-8 text-primary mb-2" />
-            <div className="font-display font-semibold">Sealed capsule</div>
-            <div className="text-xs text-muted-foreground mt-1">Contents reveal {new Date(capsule.unlock_time).toLocaleString()}</div>
+          <div className="mt-2 glass rounded-lg py-4 grid place-items-center text-center">
+            <Lock className="size-4 text-primary" />
+            <div className="text-[10px] text-muted-foreground mt-1">Sealed</div>
           </div>
         )}
+        {unlocked && files.length > 2 && (
+          <Link to="/capsule/$id" params={{ id: capsule.id }} className="text-[10px] text-primary hover:underline mt-1.5 inline-flex items-center gap-1">
+            <Globe className="size-2.5" /> +{files.length - 2} more
+          </Link>
+        )}
 
-        <div className="mt-5 pt-4 border-t border-border/40 flex items-center gap-5">
+        <div className="mt-2 pt-2 border-t border-border/40 flex items-center gap-3">
           <LikeButton capsuleId={capsule.id} compact />
           <ShareButton capsuleId={capsule.id} compact />
-          <Link to="/capsule/$id" params={{ id: capsule.id }} className="ml-auto text-sm text-primary hover:underline">
+          <Link to="/capsule/$id" params={{ id: capsule.id }} className="ml-auto text-[11px] text-primary hover:underline">
             Open →
           </Link>
         </div>
