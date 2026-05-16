@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, Globe, Unlock } from "lucide-react";
+import { Search, Globe, Unlock, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton } from "@/components/CapsuleSocial";
+import { getCountdown } from "@/lib/countdown";
+
+function shortRemaining(target: string) {
+  const c = getCountdown(target);
+  if (c.done) return "unlocked";
+  if (c.years) return `${c.years}y ${c.months}mo`;
+  if (c.months) return `${c.months}mo ${c.days}d`;
+  if (c.days) return `${c.days}d ${c.hours}h`;
+  if (c.hours) return `${c.hours}h ${c.minutes}m`;
+  return `${c.minutes}m ${c.seconds}s`;
+}
 
 export const Route = createFileRoute("/explore")({
   component: Explore,
@@ -37,7 +48,6 @@ function Explore() {
       const { data: caps } = await supabase
         .from("capsules").select("*")
         .eq("is_public", true)
-        .lte("unlock_time", new Date().toISOString())
         .order("unlock_time", { ascending: false })
         .limit(60);
       const list = (caps as Capsule[]) ?? [];
@@ -100,6 +110,7 @@ function Explore() {
 
 function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files: CapsuleFile[]; owner?: Owner; index: number }) {
   const initial = (owner?.full_name ?? "?")[0]?.toUpperCase() ?? "?";
+  const unlocked = new Date(capsule.unlock_time).getTime() <= Date.now();
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -121,10 +132,12 @@ function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files
           )}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium truncate">{owner?.full_name || "Anonymous"}</div>
-            <div className="text-xs text-muted-foreground">Unlocked {new Date(capsule.unlock_time).toLocaleDateString()}</div>
+            <div className="text-xs text-muted-foreground">
+              {unlocked ? `Unlocked ${new Date(capsule.unlock_time).toLocaleDateString()}` : `Unlocks in ${shortRemaining(capsule.unlock_time)}`}
+            </div>
           </div>
           <Badge variant="secondary" className="glass">
-            <Unlock className="size-3 mr-1" /> Open
+            {unlocked ? <><Unlock className="size-3 mr-1" /> Open</> : <><Lock className="size-3 mr-1" /> Sealed</>}
           </Badge>
         </div>
 
@@ -133,15 +146,25 @@ function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files
         </Link>
         {capsule.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{capsule.description}</p>}
 
-        {files.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {files.slice(0, 4).map((f) => <FilePreview key={f.id} file={f} />)}
+        {unlocked ? (
+          <>
+            {files.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {files.slice(0, 4).map((f) => <FilePreview key={f.id} file={f} />)}
+              </div>
+            )}
+            {files.length > 4 && (
+              <Link to="/capsule/$id" params={{ id: capsule.id }} className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">
+                <Globe className="size-3" /> +{files.length - 4} more file{files.length - 4 !== 1 ? "s" : ""}
+              </Link>
+            )}
+          </>
+        ) : (
+          <div className="mt-4 glass rounded-xl py-8 grid place-items-center text-center">
+            <Lock className="size-8 text-primary mb-2" />
+            <div className="font-display font-semibold">Sealed capsule</div>
+            <div className="text-xs text-muted-foreground mt-1">Contents reveal {new Date(capsule.unlock_time).toLocaleString()}</div>
           </div>
-        )}
-        {files.length > 4 && (
-          <Link to="/capsule/$id" params={{ id: capsule.id }} className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">
-            <Globe className="size-3" /> +{files.length - 4} more file{files.length - 4 !== 1 ? "s" : ""}
-          </Link>
         )}
 
         <div className="mt-5 pt-4 border-t border-border/40 flex items-center gap-5">
