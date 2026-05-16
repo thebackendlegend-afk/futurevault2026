@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Hourglass, LogOut } from "lucide-react";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 export function Header() {
   const { user, signOut } = useAuth();
