@@ -48,7 +48,6 @@ function Explore() {
       const { data: caps } = await supabase
         .from("capsules").select("*")
         .eq("is_public", true)
-        .lte("unlock_time", new Date().toISOString())
         .order("unlock_time", { ascending: false })
         .limit(60);
       const list = (caps as Capsule[]) ?? [];
