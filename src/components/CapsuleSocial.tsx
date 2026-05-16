@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, MessageCircle, Share2, UserPlus, UserCheck, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, UserPlus, UserCheck, Send, Trash2, Pencil, X, Check } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
