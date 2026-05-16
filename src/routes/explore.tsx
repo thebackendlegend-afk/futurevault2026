@@ -131,10 +131,12 @@ function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files
           )}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium truncate">{owner?.full_name || "Anonymous"}</div>
-            <div className="text-xs text-muted-foreground">Unlocked {new Date(capsule.unlock_time).toLocaleDateString()}</div>
+            <div className="text-xs text-muted-foreground">
+              {unlocked ? `Unlocked ${new Date(capsule.unlock_time).toLocaleDateString()}` : `Unlocks in ${shortRemaining(capsule.unlock_time)}`}
+            </div>
           </div>
           <Badge variant="secondary" className="glass">
-            <Unlock className="size-3 mr-1" /> Open
+            {unlocked ? <><Unlock className="size-3 mr-1" /> Open</> : <><Lock className="size-3 mr-1" /> Sealed</>}
           </Badge>
         </div>
 
@@ -143,15 +145,25 @@ function ExploreCard({ capsule, files, owner, index }: { capsule: Capsule; files
         </Link>
         {capsule.description && <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{capsule.description}</p>}
 
-        {files.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {files.slice(0, 4).map((f) => <FilePreview key={f.id} file={f} />)}
+        {unlocked ? (
+          <>
+            {files.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {files.slice(0, 4).map((f) => <FilePreview key={f.id} file={f} />)}
+              </div>
+            )}
+            {files.length > 4 && (
+              <Link to="/capsule/$id" params={{ id: capsule.id }} className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">
+                <Globe className="size-3" /> +{files.length - 4} more file{files.length - 4 !== 1 ? "s" : ""}
+              </Link>
+            )}
+          </>
+        ) : (
+          <div className="mt-4 glass rounded-xl py-8 grid place-items-center text-center">
+            <Lock className="size-8 text-primary mb-2" />
+            <div className="font-display font-semibold">Sealed capsule</div>
+            <div className="text-xs text-muted-foreground mt-1">Contents reveal {new Date(capsule.unlock_time).toLocaleString()}</div>
           </div>
-        )}
-        {files.length > 4 && (
-          <Link to="/capsule/$id" params={{ id: capsule.id }} className="text-xs text-primary hover:underline mt-3 inline-flex items-center gap-1">
-            <Globe className="size-3" /> +{files.length - 4} more file{files.length - 4 !== 1 ? "s" : ""}
-          </Link>
         )}
 
         <div className="mt-5 pt-4 border-t border-border/40 flex items-center gap-5">
