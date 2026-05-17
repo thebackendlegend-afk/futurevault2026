@@ -11,6 +11,7 @@ import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton, FollowButton, Comments } from "@/components/CapsuleSocial";
 import { PrivateShareButton } from "@/components/PrivateShareButton";
 import { CapsuleReviews } from "@/components/CapsuleReviews";
+import { CapsuleRatingSummary } from "@/components/CapsuleRatingSummary";
 
 export const Route = createFileRoute("/capsule/$id")({
   validateSearch: (s: Record<string, unknown>) => ({ token: typeof s.token === "string" ? s.token : undefined }),
