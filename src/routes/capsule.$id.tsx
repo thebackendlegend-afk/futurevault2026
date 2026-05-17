@@ -9,37 +9,56 @@ import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton, FollowButton, Comments } from "@/components/CapsuleSocial";
+import { PrivateShareButton } from "@/components/PrivateShareButton";
+import { CapsuleReviews } from "@/components/CapsuleReviews";
 
-export const Route = createFileRoute("/capsule/$id")({ component: CapsulePage });
+export const Route = createFileRoute("/capsule/$id")({
+  validateSearch: (s: Record<string, unknown>) => ({ token: typeof s.token === "string" ? s.token : undefined }),
+  component: CapsulePage,
+});
 
 type Capsule = {
   id: string; user_id: string; title: string; description: string | null;
   message: string | null;
   unlock_time: string; is_public: boolean; thumbnail_url: string | null; created_at: string;
+  share_token?: string | null;
 };
 
 
 function CapsulePage() {
   const { id } = Route.useParams();
+  const { token } = Route.useSearch();
   const { user } = useAuth();
   const [capsule, setCapsule] = useState<Capsule | null>(null);
   const [files, setFiles] = useState<CapsuleFile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viaLink, setViaLink] = useState(false);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data: c } = await supabase.from("capsules").select("*").eq("id", id).maybeSingle();
+      let { data: c } = await supabase.from("capsules").select("*").eq("id", id).maybeSingle();
+      let usedLink = false;
+      if (!c && token) {
+        const { data: shared } = await (supabase as any).rpc("get_shared_capsule", { p_id: id, p_token: token });
+        if (shared && shared.length) { c = shared[0]; usedLink = true; }
+      }
       setCapsule(c as Capsule | null);
+      setViaLink(usedLink);
       if (c) {
-        const { data: f } = await supabase.from("capsule_files").select("*").eq("capsule_id", id);
-        setFiles((f as CapsuleFile[]) ?? []);
+        if (usedLink) {
+          const { data: f } = await (supabase as any).rpc("get_shared_capsule_files", { p_id: id, p_token: token });
+          setFiles((f as CapsuleFile[]) ?? []);
+        } else {
+          const { data: f } = await supabase.from("capsule_files").select("*").eq("capsule_id", id);
+          setFiles((f as CapsuleFile[]) ?? []);
+        }
       }
       setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, token]);
 
   useEffect(() => {
     if (!capsule) return;
@@ -87,6 +106,16 @@ function CapsulePage() {
             </div>
             {capsule.is_public && !isOwner && <FollowButton targetUserId={capsule.user_id} />}
           </div>
+
+          {isOwner && !capsule.is_public && capsule.share_token && (
+            <PrivateShareButton capsuleId={capsule.id} shareToken={capsule.share_token} />
+          )}
+
+          {viaLink && (
+            <div className="mt-4 text-xs text-muted-foreground glass rounded-lg px-3 py-2 inline-flex items-center gap-2">
+              <span>🔗 You're viewing this capsule via a private share link.</span>
+            </div>
+          )}
 
           {capsule.is_public && (
             <div className="flex items-center gap-5 mt-5 pb-5 border-b border-border/40">
@@ -160,6 +189,10 @@ function CapsulePage() {
 
           {capsule.is_public && unlocked && (
             <Comments capsuleId={capsule.id} ownerId={capsule.user_id} />
+          )}
+
+          {unlocked && (capsule.is_public || isOwner || viaLink) && (
+            <CapsuleReviews capsuleId={capsule.id} ownerId={capsule.user_id} />
           )}
         </div>
       </motion.div>
