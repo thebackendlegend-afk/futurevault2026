@@ -190,6 +190,10 @@ function CapsulePage() {
           {capsule.is_public && unlocked && (
             <Comments capsuleId={capsule.id} ownerId={capsule.user_id} />
           )}
+
+          {unlocked && (capsule.is_public || isOwner || viaLink) && (
+            <CapsuleReviews capsuleId={capsule.id} ownerId={capsule.user_id} />
+          )}
         </div>
       </motion.div>
     </div>
