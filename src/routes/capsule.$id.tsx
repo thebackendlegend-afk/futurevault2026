@@ -11,6 +11,7 @@ import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton, FollowButton, Comments } from "@/components/CapsuleSocial";
 import { PrivateShareButton } from "@/components/PrivateShareButton";
 import { CapsuleReviews } from "@/components/CapsuleReviews";
+import { CapsuleRatingSummary } from "@/components/CapsuleRatingSummary";
 
 export const Route = createFileRoute("/capsule/$id")({
   validateSearch: (s: Record<string, unknown>) => ({ token: typeof s.token === "string" ? s.token : undefined }),
@@ -102,6 +103,7 @@ function CapsulePage() {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
               <h1 className="text-4xl sm:text-5xl font-display font-bold">{capsule.title}</h1>
+              <div className="mt-2"><CapsuleRatingSummary capsuleId={capsule.id} /></div>
               {capsule.description && <p className="text-muted-foreground mt-3 max-w-2xl">{capsule.description}</p>}
             </div>
             {capsule.is_public && !isOwner && <FollowButton targetUserId={capsule.user_id} />}
