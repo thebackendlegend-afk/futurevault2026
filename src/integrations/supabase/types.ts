@@ -116,6 +116,36 @@ export type Database = {
           },
         ]
       }
+      capsule_reviews: {
+        Row: {
+          capsule_id: string
+          created_at: string
+          id: string
+          rating: number
+          review: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capsule_id: string
+          created_at?: string
+          id?: string
+          rating: number
+          review?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capsule_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       capsules: {
         Row: {
           created_at: string
@@ -123,6 +153,7 @@ export type Database = {
           id: string
           is_public: boolean
           message: string | null
+          share_token: string
           thumbnail_url: string | null
           title: string
           unlock_time: string
@@ -134,6 +165,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           message?: string | null
+          share_token?: string
           thumbnail_url?: string | null
           title: string
           unlock_time: string
@@ -145,6 +177,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           message?: string | null
+          share_token?: string
           thumbnail_url?: string | null
           title?: string
           unlock_time?: string
@@ -232,7 +265,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_capsule: {
+        Args: { p_id: string; p_token: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          message: string | null
+          share_token: string
+          thumbnail_url: string | null
+          title: string
+          unlock_time: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "capsules"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_shared_capsule_files: {
+        Args: { p_id: string; p_token: string }
+        Returns: {
+          capsule_id: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          storage_path: string
+          uploaded_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "capsule_files"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
