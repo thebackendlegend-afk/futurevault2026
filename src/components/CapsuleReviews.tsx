@@ -152,6 +152,18 @@ export function CapsuleReviews({ capsuleId, ownerId }: { capsuleId: string; owne
         </motion.div>
       )}
 
+      {!user && (
+        <div className="glass rounded-2xl p-5 mb-6 text-sm text-muted-foreground text-center">
+          <a href="/login" className="text-primary underline">Sign in</a> to leave a rating and review.
+        </div>
+      )}
+
+      {user && isOwner && (
+        <div className="glass rounded-2xl p-5 mb-6 text-sm text-muted-foreground text-center">
+          You can't review your own capsule.
+        </div>
+      )}
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading reviews…</p>
       ) : reviews.length === 0 ? (
