@@ -9,13 +9,19 @@ import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { FilePreview, type CapsuleFile } from "@/components/FilePreview";
 import { LikeButton, ShareButton, FollowButton, Comments } from "@/components/CapsuleSocial";
+import { PrivateShareButton } from "@/components/PrivateShareButton";
+import { CapsuleReviews } from "@/components/CapsuleReviews";
 
-export const Route = createFileRoute("/capsule/$id")({ component: CapsulePage });
+export const Route = createFileRoute("/capsule/$id")({
+  validateSearch: (s: Record<string, unknown>) => ({ token: typeof s.token === "string" ? s.token : undefined }),
+  component: CapsulePage,
+});
 
 type Capsule = {
   id: string; user_id: string; title: string; description: string | null;
   message: string | null;
   unlock_time: string; is_public: boolean; thumbnail_url: string | null; created_at: string;
+  share_token?: string | null;
 };
 
 
