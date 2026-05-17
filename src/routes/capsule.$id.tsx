@@ -107,6 +107,16 @@ function CapsulePage() {
             {capsule.is_public && !isOwner && <FollowButton targetUserId={capsule.user_id} />}
           </div>
 
+          {isOwner && !capsule.is_public && capsule.share_token && (
+            <PrivateShareButton capsuleId={capsule.id} shareToken={capsule.share_token} />
+          )}
+
+          {viaLink && (
+            <div className="mt-4 text-xs text-muted-foreground glass rounded-lg px-3 py-2 inline-flex items-center gap-2">
+              <span>🔗 You're viewing this capsule via a private share link.</span>
+            </div>
+          )}
+
           {capsule.is_public && (
             <div className="flex items-center gap-5 mt-5 pb-5 border-b border-border/40">
               <LikeButton capsuleId={capsule.id} />
