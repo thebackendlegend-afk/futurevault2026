@@ -27,25 +27,38 @@ type Capsule = {
 
 function CapsulePage() {
   const { id } = Route.useParams();
+  const { token } = Route.useSearch();
   const { user } = useAuth();
   const [capsule, setCapsule] = useState<Capsule | null>(null);
   const [files, setFiles] = useState<CapsuleFile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viaLink, setViaLink] = useState(false);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data: c } = await supabase.from("capsules").select("*").eq("id", id).maybeSingle();
+      let { data: c } = await supabase.from("capsules").select("*").eq("id", id).maybeSingle();
+      let usedLink = false;
+      if (!c && token) {
+        const { data: shared } = await (supabase as any).rpc("get_shared_capsule", { p_id: id, p_token: token });
+        if (shared && shared.length) { c = shared[0]; usedLink = true; }
+      }
       setCapsule(c as Capsule | null);
+      setViaLink(usedLink);
       if (c) {
-        const { data: f } = await supabase.from("capsule_files").select("*").eq("capsule_id", id);
-        setFiles((f as CapsuleFile[]) ?? []);
+        if (usedLink) {
+          const { data: f } = await (supabase as any).rpc("get_shared_capsule_files", { p_id: id, p_token: token });
+          setFiles((f as CapsuleFile[]) ?? []);
+        } else {
+          const { data: f } = await supabase.from("capsule_files").select("*").eq("capsule_id", id);
+          setFiles((f as CapsuleFile[]) ?? []);
+        }
       }
       setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, token]);
 
   useEffect(() => {
     if (!capsule) return;
