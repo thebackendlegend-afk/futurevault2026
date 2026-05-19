@@ -32,13 +32,15 @@ function Profile() {
     let active = true;
     (async () => {
       const [{ data: profile }, { data: capsules }] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, username, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("capsules").select("unlock_time").eq("user_id", user.id),
       ]);
       if (!active) return;
       const name = profile?.full_name ?? "";
+      const uname = profile?.username ?? "";
       setFullName(name);
-      setInitial(name);
+      setUsername(uname);
+      setInitial({ name, username: uname });
       setAvatarUrl(profile?.avatar_url ?? null);
       const now = Date.now();
       const list = capsules ?? [];
@@ -88,18 +90,26 @@ function Profile() {
     toast.success("Photo removed");
   };
 
-  const dirty = fullName.trim() !== initial.trim();
+  const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const dirty = fullName.trim() !== initial.name.trim() || cleanUsername !== initial.username;
 
   const save = async () => {
     if (!user || !dirty) return;
+    if (cleanUsername && (cleanUsername.length < 3 || cleanUsername.length > 24)) {
+      return toast.error("Username must be 3–24 chars (a-z, 0-9, _)");
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: fullName.trim() })
+      .update({ full_name: fullName.trim(), username: cleanUsername || null })
       .eq("id", user.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
-    setInitial(fullName.trim());
+    if (error) {
+      if (error.code === "23505") return toast.error("That username is taken");
+      return toast.error(error.message);
+    }
+    setInitial({ name: fullName.trim(), username: cleanUsername });
+    setUsername(cleanUsername);
     toast.success("Profile updated");
   };
 
