@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FollowStats } from "@/components/FollowStats";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: Profile });
 
@@ -17,7 +18,8 @@ type Stats = { total: number; locked: number; unlocked: number };
 function Profile() {
   const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
-  const [initial, setInitial] = useState("");
+  const [username, setUsername] = useState("");
+  const [initial, setInitial] = useState({ name: "", username: "" });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
