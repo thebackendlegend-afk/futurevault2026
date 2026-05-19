@@ -162,6 +162,7 @@ function Profile() {
             <h1 className="text-3xl sm:text-4xl font-display font-bold truncate">
               {fullName || "Welcome"}
             </h1>
+            {username && <p className="text-sm text-gradient font-medium">@{username}</p>}
             <p className="text-muted-foreground text-sm flex items-center gap-1.5">
               <Mail className="size-3.5" /> {user?.email}
             </p>
@@ -177,6 +178,8 @@ function Profile() {
             </div>
           </div>
         </div>
+
+        {user && <FollowStats userId={user.id} />}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -196,6 +199,7 @@ function Profile() {
           ))}
         </div>
 
+
         {/* Profile form */}
         <div className="glass-strong rounded-2xl p-6 space-y-5">
           <div>
@@ -208,6 +212,21 @@ function Profile() {
               className="mt-1.5"
               disabled={loading}
             />
+          <div>
+            <Label className="flex items-center gap-1.5"><UserIcon className="size-3.5" /> Username</Label>
+            <div className="relative mt-1.5">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                maxLength={24}
+                placeholder="yourname"
+                className="pl-7"
+                disabled={loading}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, underscores. Others can DM you with this.</p>
+          </div>
           </div>
           <div>
             <Label className="flex items-center gap-1.5"><Mail className="size-3.5" /> Email</Label>

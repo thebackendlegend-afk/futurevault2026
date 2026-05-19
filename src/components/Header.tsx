@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Hourglass, LogOut } from "lucide-react";
+import { Hourglass, LogOut, MessageCircle } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 
 export function Header() {
@@ -23,6 +23,9 @@ export function Header() {
             <>
               <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">Dashboard</Link>
               <Link to="/profile" className="text-sm text-muted-foreground hover:text-foreground transition hidden sm:inline">Profile</Link>
+              <Link to="/messages" aria-label="Messages" className="text-muted-foreground hover:text-foreground transition">
+                <MessageCircle className="size-5" />
+              </Link>
               <NotificationsBell />
               <Button size="sm" variant="ghost" onClick={async () => { await signOut(); nav({ to: "/" }); }}>
                 <LogOut className="size-4" />
