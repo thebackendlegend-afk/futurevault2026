@@ -185,6 +185,33 @@ export type Database = {
         }
         Relationships: []
       }
+      direct_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -225,6 +252,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -232,6 +260,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -239,6 +268,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          username?: string | null
         }
         Relationships: []
       }

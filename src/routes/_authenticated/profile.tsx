@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FollowStats } from "@/components/FollowStats";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: Profile });
 
@@ -17,7 +18,8 @@ type Stats = { total: number; locked: number; unlocked: number };
 function Profile() {
   const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
-  const [initial, setInitial] = useState("");
+  const [username, setUsername] = useState("");
+  const [initial, setInitial] = useState({ name: "", username: "" });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,13 +32,15 @@ function Profile() {
     let active = true;
     (async () => {
       const [{ data: profile }, { data: capsules }] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, username, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("capsules").select("unlock_time").eq("user_id", user.id),
       ]);
       if (!active) return;
       const name = profile?.full_name ?? "";
+      const uname = profile?.username ?? "";
       setFullName(name);
-      setInitial(name);
+      setUsername(uname);
+      setInitial({ name, username: uname });
       setAvatarUrl(profile?.avatar_url ?? null);
       const now = Date.now();
       const list = capsules ?? [];
@@ -86,18 +90,26 @@ function Profile() {
     toast.success("Photo removed");
   };
 
-  const dirty = fullName.trim() !== initial.trim();
+  const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const dirty = fullName.trim() !== initial.name.trim() || cleanUsername !== initial.username;
 
   const save = async () => {
     if (!user || !dirty) return;
+    if (cleanUsername && (cleanUsername.length < 3 || cleanUsername.length > 24)) {
+      return toast.error("Username must be 3–24 chars (a-z, 0-9, _)");
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: fullName.trim() })
+      .update({ full_name: fullName.trim(), username: cleanUsername || null })
       .eq("id", user.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
-    setInitial(fullName.trim());
+    if (error) {
+      if (error.code === "23505") return toast.error("That username is taken");
+      return toast.error(error.message);
+    }
+    setInitial({ name: fullName.trim(), username: cleanUsername });
+    setUsername(cleanUsername);
     toast.success("Profile updated");
   };
 
@@ -150,6 +162,7 @@ function Profile() {
             <h1 className="text-3xl sm:text-4xl font-display font-bold truncate">
               {fullName || "Welcome"}
             </h1>
+            {username && <p className="text-sm text-gradient font-medium">@{username}</p>}
             <p className="text-muted-foreground text-sm flex items-center gap-1.5">
               <Mail className="size-3.5" /> {user?.email}
             </p>
@@ -165,6 +178,8 @@ function Profile() {
             </div>
           </div>
         </div>
+
+        {user && <FollowStats userId={user.id} />}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -184,6 +199,7 @@ function Profile() {
           ))}
         </div>
 
+
         {/* Profile form */}
         <div className="glass-strong rounded-2xl p-6 space-y-5">
           <div>
@@ -196,6 +212,21 @@ function Profile() {
               className="mt-1.5"
               disabled={loading}
             />
+          <div>
+            <Label className="flex items-center gap-1.5"><UserIcon className="size-3.5" /> Username</Label>
+            <div className="relative mt-1.5">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                maxLength={24}
+                placeholder="yourname"
+                className="pl-7"
+                disabled={loading}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, underscores. Others can DM you with this.</p>
+          </div>
           </div>
           <div>
             <Label className="flex items-center gap-1.5"><Mail className="size-3.5" /> Email</Label>
